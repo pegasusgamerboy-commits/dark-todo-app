@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tasks</title>
+<style>
+:root {
+  --bg: #0a0f14;
+  --bg-elevated: #111820;
+  --surface: #161e2a;
+  --surface-hover: #1c2636;
+  --text: #e8edf2;
+  --text-muted: #6b7c8e;
+  --accent: #4fd1c5;
+  --accent-hover: #38bdb0;
+  --accent-dim: rgba(79, 209, 197, 0.15);
+  --danger: #f87171;
+  --danger-hover: #ef4444;
+  --danger-dim: rgba(248, 113, 113, 0.15);
+  --border: #243040;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --transition: 150ms ease;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f0f4f8;
+    --bg-elevated: #ffffff;
+    --surface: #ffffff;
+    --surface-hover: #eef2f7;
+    --text: #1a2330;
+    --text-muted: #6b7c8e;
+    --accent: #0d9488;
+    --accent-hover: #0f766e;
+    --accent-dim: rgba(13, 148, 136, 0.12);
+    --danger: #dc2626;
+    --danger-hover: #b91c1c;
+    --danger-dim: rgba(220, 38, 38, 0.12);
+    --border: #d0d8e2;
+    --shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+    --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 20px 80px;
+  line-height: 1.5;
+}
+.app {
+  width: 100%;
+  max-width: 520px;
+}
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.header h1 {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.header p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.input-row {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.input-row:focus-within {
+  background: var(--surface-hover);
+}
+.input-row input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 1rem;
+  padding: 10px 4px;
+}
+.input-row input::placeholder {
+  color: var(--text-muted);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  white-space: nowrap;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+}
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 8px 12px;
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  padding: 8px;
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-dim);
+  color: var(--danger-hover);
+}
+.btn-danger:active:not(:disabled) { transform: scale(0.95); }
+.filters {
+  display: flex;
+  gap: 4px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.filter-btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.filter-btn:hover { color: var(--text); background: var(--surface-hover); }
+.filter-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+.todo-list {
+  max-height: 480px;
+  overflow-y: auto;
+}
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background var(--transition);
+}
+.todo-item:last-child { border-bottom: none; }
+.todo-item:hover { background: var(--surface-hover); }
+.todo-item.completed .todo-text { text-decoration: line-through; color: var(--text-muted); }
+.todo-checkbox {
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.todo-checkbox:hover { border-color: var(--accent); }
+.todo-checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.todo-checkbox svg { width: 14px; height: 14px; color: var(--bg); opacity: 0; transform: scale(0.5); transition: all var(--transition); }
+.todo-checkbox.checked svg { opacity: 1; transform: scale(1); }
+.todo-text {
+  flex: 1;
+  font-size: 1rem;
+  word-break: break-word;
+  transition: color var(--transition);
+}
+.todo-delete {
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.todo-item:hover .todo-delete { opacity: 1; }
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state h3 { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+.empty-state p { font-size: 0.9rem; }
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.footer-actions { display: flex; gap: 8px; }
+.loading { display: flex; align-items: center; justify-content: center; padding: 40px; color: var(--text-muted); }
+.spinner {
+  width: 24px; height: 24px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 100;
+  max-width: 90vw;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.error { border-color: var(--danger); }
+.toast svg { flex-shrink: 0; }
+@media (max-width: 480px) {
+  body { padding: 32px 16px 60px; }
+  .input-row { flex-direction: column; gap: 8px; }
+  .input-row .btn { width: 100%; }
+  .filters { padding: 8px 16px; }
+  .todo-item { padding: 14px 16px; }
+  .footer { flex-direction: column; gap: 12px; text-align: center; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="header">
+    <h1>Tasks</h1>
+    <p>Stay focused. Get things done.</p>
+  </header>
+
+  <main class="card" role="main">
+    <form class="input-row" id="todo-form" aria-label="Add new task">
+      <input type="text" id="todo-input" placeholder="What needs to be done?" autocomplete="off" aria-label="Task description" required>
+      <button type="submit" class="btn btn-primary" id="add-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Add
+      </button>
+    </form>
+
+    <div class="filters" role="tablist" aria-label="Filter tasks">
+      <button class="filter-btn active" role="tab" data-filter="all" aria-selected="true">All</button>
+      <button class="filter-btn" role="tab" data-filter="active" aria-selected="false">Active</button>
+      <button class="filter-btn" role="tab" data-filter="completed" aria-selected="false">Completed</button>
+    </div>
+
+    <ul class="todo-list" id="todo-list" role="list" aria-label="Tasks">
+      <li class="loading" aria-hidden="true"><div class="spinner"></div>Loading tasks…</li>
+    </ul>
+
+    <footer class="footer">
+      <span id="count">0 items left</span>
+      <div class="footer-actions">
+        <button class="btn btn-ghost" id="clear-btn" disabled>Clear completed</button>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="alert" aria-live="polite" hidden>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+  <span id="toast-message"></span>
+</div>
+
+<script>
+const API = '/api/todos';
+let todos = [];
+let currentFilter = 'all';
+let toastTimer = null;
+
+const $ = (sel, ctx = document) => ctx.querySelector(sel);
+const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+const elements = {
+  form: $('#todo-form'),
+  input: $('#todo-input'),
+  addBtn: $('#add-btn'),
+  list: $('#todo-list'),
+  count: $('#count'),
+  clearBtn: $('#clear-btn'),
+  filters: $$('.filter-btn'),
+  toast: $('#toast'),
+  toastMsg: $('#toast-message')
+};
+
+function showToast(message, isError = false) {
+  clearTimeout(toastTimer);
+  elements.toastMsg.textContent = message;
+  elements.toast.classList.toggle('error', isError);
+  elements.toast.hidden = false;
+  requestAnimationFrame(() => elements.toast.classList.add('show'));
+  toastTimer = setTimeout(() => hideToast(), 3000);
+}
+function hideToast() {
+  elements.toast.classList.remove('show');
+  setTimeout(() => { elements.toast.hidden = true; }, 300);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function render() {
+  const filtered = todos.filter(t => {
+    if (currentFilter === 'active') return !t.completed;
+    if (currentFilter === 'completed') return t.completed;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    let msg, sub;
+    if (todos.length === 0) {
+      msg = 'No tasks yet';
+      sub = 'Add your first task above to get started';
+    } else if (currentFilter === 'active') {
+      msg = 'All caught up!';
+      sub = 'No active tasks remaining';
+    } else {
+      msg = 'No completed tasks';
+      sub = 'Tasks you finish will appear here';
+    }
+    elements.list.innerHTML = `
+      <li class="empty-state" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"></path>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+        </svg>
+        <h3>${msg}</h3>
+        <p>${sub}</p>
+      </li>
+    `;
+  } else {
+    elements.list.innerHTML = filtered.map(todo => `
+      <li class="todo-item${todo.completed ? ' completed' : ''}" data-id="${todo.id}">
+        <button class="todo-checkbox${todo.completed ? ' checked' : ''}" aria-label="${todo.completed ? 'Mark as active' : 'Mark as complete'}" aria-pressed="${todo.completed}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </button>
+        <span class="todo-text">${escapeHtml(todo.text)}</span>
+        <button class="todo-delete btn-danger" aria-label="Delete task">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </li>
+    `).join('');
+  }
+
+  const activeCount = todos.filter(t => !t.completed).length;
+  elements.count.textContent = `${activeCount} ${activeCount === 1 ? 'item' : 'items'} left`;
+  elements.clearBtn.disabled = !todos.some(t => t.completed);
+}
+
+async function fetchTodos() {
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('Failed to load');
+    todos = await res.json();
+    todos.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    render();
+  } catch (err) {
+    console.error(err);
+    elements.list.innerHTML = `
+      <li class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <h3>Could not load tasks</h3>
+        <p>Check your connection and try again</p>
+      </li>
+    `;
+    showToast('Failed to load tasks', true);
+  }
+}
+
+async function addTodo(text) {
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!res.ok) throw new Error('Failed to add');
+    const todo = await res.json();
+    todos.unshift(todo);
+    render();
+    showToast('Task added');
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to add task', true);
+  }
+}
+
+async function updateTodo(id, updates) {
+  const idx = todos.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  const previous = { ...todos[idx] };
+  todos[idx] = { ...todos[idx], ...updates };
+  render();
+  try {
+    const res = await fetch(`${API}/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+    if (!res.ok) throw new Error('Failed to update');
+    const updated = await res.json();
+    todos[idx] = updated;
+  } catch (err) {
+    console.error(err);
+    todos[idx] = previous;
+    render();
+    showToast('Failed to update', true);
+  }
+}
+
+async function deleteTodo(id) {
+  const idx = todos.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  const removed = todos.splice(idx, 1)[0];
+  render();
+  try {
+    const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete');
+    showToast('Task deleted');
+  } catch (err) {
+    console.error(err);
+    todos.splice(idx, 0, removed);
+    render();
+    showToast('Failed to delete', true);
+  }
+}
+
+async function clearCompleted() {
+  const completed = todos.filter(t => t.completed);
+  if (completed.length === 0) return;
+  todos = todos.filter(t => !t.completed);
+  render();
+  try {
+    const res = await fetch(API, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to clear');
+    showToast('Cleared completed tasks');
+  } catch (err) {
+    console.error(err);
+    todos = [...todos, ...completed];
+    render();
+    showToast('Failed to clear', true);
+  }
+}
+
+elements.form.addEventListener('submit', e => {
+  e.preventDefault();
+  const text = elements.input.value.trim();
+  if (!text) return;
+  elements.addBtn.disabled = true;
+  addTodo(text).finally(() => {
+    elements.addBtn.disabled = false;
+    elements.input.value = '';
+    elements.input.focus();
+  });
+});
+
+elements.list.addEventListener('click', e => {
+  const item = e.target.closest('.todo-item');
+  if (!item) return;
+  const id = item.dataset.id;
+  if (e.target.closest('.todo-checkbox')) {
+    const todo = todos.find(t => t.id === id);
+    if (todo) updateTodo(id, { completed: !todo.completed });
+  } else if (e.target.closest('.todo-delete')) {
+    deleteTodo(id);
+  }
+});
+
+elements.filters.forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentFilter = btn.dataset.filter;
+    elements.filters.forEach(b => {
+      b.classList.toggle('active', b === btn);
+      b.setAttribute('aria-selected', b === btn);
+    });
+    render();
+  });
+});
+
+elements.clearBtn.addEventListener('click', clearCompleted);
+
+fetchTodos();
+elements.input.focus();
+</script>
+</body>
+</html>
